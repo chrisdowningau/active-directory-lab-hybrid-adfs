@@ -21,7 +21,7 @@
     },
     "adDomainName": {
       "type": "string",
-      "defaultValue": "contoso.com"
+      "defaultValue": ""
     },
     "adminPassword": {
       "type": "securestring",
@@ -85,6 +85,15 @@
       "defaultValue": "1",
       "allowedValues": [ "1", "2", "3", "4", "5" ],
       "metadata": { "description": "An ADFS/WAP server combo will be setup independently this number of times. NOTE: it's unlikely to ever need more than one - additional farm counts are for edge case testing." }
+    },
+    "imageOffer": {
+      "type": "string"
+    },
+    "imagePublisher": {
+      "type": "string"
+    },
+    "imageSKU": {
+      "type": "string"
     }
   },
   "variables": {
@@ -102,9 +111,9 @@
     "computeApiVersion": "2016-04-30-preview",
     "dmzSubnetID": "[concat(variables('vnetID'),'/subnets/',parameters('dmzSubnetName'))]",
     "domainJoinOptions": "3",
-    "imageOffer": "WindowsServer",
-    "imagePublisher": "MicrosoftWindowsServer",
-    "imageSKU": "2012-R2-Datacenter",
+    // "imageOffer": "WindowsServer",
+    // "imagePublisher": "MicrosoftWindowsServer",
+    // "imageSKU": "2012-R2-Datacenter",
     "publicIPAddressDNSName": "[tolower(parameters('publicIPAddressDNSName'))]",
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
     "wapDSCConfigurationFunction": "wapDSCConfiguration.ps1\\Main",
@@ -235,9 +244,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
+            "publisher": "[parameters('imagePublisher')]",
+            "offer": "[parameters('imageOffer')]",
+            "sku": "[parameters('imageSKU')]",
             "version": "latest"
           },
           "osDisk": {
@@ -254,6 +263,21 @@
         }
       },
       "resources": [
+              {
+         "type":"Microsoft.Compute/virtualMachines/runCommands",
+         "name":"[concat(parameters('adfsVMName'),'/firstRunCommand')]",
+         "apiVersion":"2019-12-01",
+         "location": "[resourceGroup().location]",
+         "dependsOn":[
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('adfsVMName'))]"
+         ],
+         "properties":{
+            "source":{
+               "script": "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;"
+            },
+            "timeoutInSeconds":20
+         }
+      }
       ]
     },
     {
@@ -313,9 +337,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
+            "publisher": "[parameters('imagePublisher')]",
+            "offer": "[parameters('imageOffer')]",
+            "sku": "[parameters('imageSKU')]",
             "version": "latest"
           },
           "osDisk": {
@@ -330,7 +354,24 @@
             }
           ]
         }
+      },
+      "resources": [
+              {
+         "type":"Microsoft.Compute/virtualMachines/runCommands",
+         "name":"[concat(parameters('wapVMName'),'/firstRunCommand')]",
+         "apiVersion":"2019-12-01",
+         "location": "[resourceGroup().location]",
+         "dependsOn":[
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('wapVMName'))]"
+         ],
+         "properties":{
+            "source":{
+               "script": "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;"
+            },
+            "timeoutInSeconds":20
+         }
       }
+      ]
     }
   ],
   "outputs": {

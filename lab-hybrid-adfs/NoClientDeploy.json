@@ -4,7 +4,7 @@
   "parameters": {
     "assetLocation": {
       "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/Azure-Samples/active-directory-lab-hybrid-adfs/master/lab-hybrid-adfs/",
+      "defaultValue": "https://raw.githubusercontent.com/chrisdowningau/active-directory-lab-hybrid-adfs/fix-tls-error/lab-hybrid-adfs/",
       "metadata": { "description": "This is the location in which all the linked templates are stored." }
     },
     "adminUsername": {
@@ -24,7 +24,6 @@
     },
     "adDomainName": {
       "type": "string",
-      "defaultValue": "contoso.com",
       "metadata": { "description": "Two-part internal AD name - short/NB name will be first part ('contoso')." }
     },
     "usersArray": {
@@ -228,7 +227,10 @@
           "networkInterfaceName": { "value": "[variables('NetworkInterfaceName')]" },
           "virtualNetworkName": { "value": "[variables('virtualNetworkName')]" },
           "vmSize": { "value": "[parameters('vmSize')]" },
-          "deploymentNumber": { "value": "[parameters('deploymentNumber')]" }
+          "deploymentNumber": { "value": "[parameters('deploymentNumber')]" },
+           "imageOffer": { "value": "[variables('imageOffer')]" },
+           "imagePublisher": { "value": "[variables('imagePublisher')]" },
+           "imageSKU": { "value": "[variables('imageSKU')]" }
         }
       }
     },
@@ -344,7 +346,10 @@
           "vmSize": { "value": "[parameters('vmSize')]" },
           "wapVMName": { "value": "[variables('wapVMName')]" },
           "deploymentNumber": { "value": "[parameters('deploymentNumber')]" },
-          "adfsFarmCount": { "value": "[parameters('AdfsFarmCount')]" }
+          "adfsFarmCount": { "value": "[parameters('AdfsFarmCount')]" },
+           "imageOffer": { "value": "[variables('imageOffer')]" },
+           "imagePublisher": { "value": "[variables('imagePublisher')]" },
+           "imageSKU": { "value": "[variables('imageSKU')]" }
         }
       }
     },

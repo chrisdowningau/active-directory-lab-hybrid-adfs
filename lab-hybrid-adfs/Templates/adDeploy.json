@@ -30,7 +30,7 @@
     },
     "adDomainName": {
       "type": "string",
-      "defaultValue": "contoso.com"
+      "defaultValue": ""
     },
     "assetLocation": {
       "type": "string"
@@ -52,15 +52,25 @@
       "type": "string",
       "defaultValue": "Standard_D1_v2",
       "metadata": { "description": "This is the allowed list of VM sizes" }
+    },
+    "imageOffer": {
+      "type": "string"
+    },
+    "imagePublisher": {
+      "type": "string"
+    },
+    "imageSKU": {
+      "type": "string"
     }
+
   },
   "variables": {
     "DeployADTemplate": "DeployAD.ps1",
     "DeployADTemplateUri": "[concat(parameters('assetLocation'), 'Scripts/DeployAD.ps1')]",
     "adSubnetID": "[concat(variables('vnetID'),'/subnets/', parameters('adSubnetName'))]",
-    "imageOffer": "WindowsServer",
-    "imagePublisher": "MicrosoftWindowsServer",
-    "imageSKU": "2012-R2-Datacenter",
+    // "imageOffer":  { "value": "[variables('imageOffer')]" },
+    // "imagePublisher": { "value": "[variables('imagePublisher')]" },
+    // "imageSKU": { "value": "[variables('imageSKU')]" },
     "vnetID": "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworkName'))]",
     "adPubIPName": "[concat('adPubIP', parameters('deploymentNumber'))]",
     "adNicName": "[concat('ad-',parameters('NetworkInterfaceName'), parameters('deploymentNumber'))]",
@@ -129,9 +139,9 @@
         },
         "storageProfile": {
           "imageReference": {
-            "publisher": "[variables('imagePublisher')]",
-            "offer": "[variables('imageOffer')]",
-            "sku": "[variables('imageSKU')]",
+            "publisher": "[parameters('imagePublisher')]",
+            "offer": "[parameters('imageOffer')]",
+            "sku": "[parameters('imageSKU')]",
             "version": "latest"
           },
           "osDisk": {
@@ -148,13 +158,29 @@
         }
       },
       "resources": [
+              {
+         "type":"Microsoft.Compute/virtualMachines/runCommands",
+         "name":"[concat(parameters('adVMName'),'/firstRunCommand')]",
+         "apiVersion":"2019-12-01",
+         "location": "[resourceGroup().location]",
+         "dependsOn":[
+            "[concat('Microsoft.Compute/virtualMachines/', parameters('adVMName'))]"
+         ],
+         "properties":{
+            "source":{
+               "script": "Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Wow6432Node\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;Set-ItemProperty -Path 'HKLM:\\SOFTWARE\\Microsoft\\.NetFramework\\v4.0.30319' -Name SchUseStrongCrypto -Value 1 -Type DWord;"
+            },
+            "timeoutInSeconds":20
+         }
+      },
         {
           "name": "DeployAD",
           "type": "extensions",
           "location": "[resourceGroup().location]",
           "apiVersion": "2015-06-15",
           "dependsOn": [
-            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('adVMName')))]"
+            "[concat('Microsoft.Compute/virtualMachines/', concat(parameters('adVMName')))]",
+             "[resourceId('Microsoft.Compute/virtualMachines/runCommands', parameters('adVMName'), 'firstRunCommand')]"
           ],
           "tags": {
             "displayName": "DeployAD"
