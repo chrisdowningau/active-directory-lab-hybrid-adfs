@@ -58,10 +58,11 @@ if (!(Test-Path -Path "$($completeFile)$step")) {
                            -IncludeAllSubFeature 
 
     Install-ADDSForest -DomainName $domain `
-                       -DomainMode Win2012 `
-                       -ForestMode Win2012 `
+                       -DomainMode Default `
+                       -ForestMode Default `
                        -Force `
-                       -SafeModeAdministratorPassword $smPassword 
+                       -SafeModeAdministratorPassword $smPassword `
+		       -NoRebootOnCompletion
 
     #record that we got this far
     New-Item -ItemType file "$($completeFile)$step"
